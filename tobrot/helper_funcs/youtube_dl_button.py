@@ -39,7 +39,7 @@ async def youtube_dl_call_back(bot, update):
     if current_user_id != current_touched_user_id:
         await bot.answer_callback_query(
             callback_query_id=update.id,
-            text="who are you? 🤪🤔🤔🤔",
+            text="who are you? 🤪",
             show_alert=True,
             cache_time=0
         )
@@ -89,14 +89,14 @@ async def youtube_dl_call_back(bot, update):
     if "noyes.in" in youtube_dl_url or "tor.checker.in" in youtube_dl_url:
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
-            text="😡😡 <i>please do not abuse this <u>FREE</u> service</i> 🌚",
+            text="<i>please do not abuse this <u>FREE</u> service</i> 🌚",
             message_id=update.message.message_id
         )
         return
     if "drive.google.com" in youtube_dl_url and youtube_dl_format != "source":
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
-            text="<i>please do not abuse this <u>FREE</u> service</i>",
+            text="<i>Please do not abuse this <u>FREE</u> service</i>",
             message_id=update.message.message_id
         )
         return
@@ -106,7 +106,7 @@ async def youtube_dl_call_back(bot, update):
         chat_id=update.message.chat.id,
         message_id=update.message.message_id
     )
-    description = "@PublicLeechGroup"
+    description = "@a092devsbot"
     if "fulltitle" in response_json:
         description = response_json["fulltitle"][0:1021]
         # escape Markdown and special characters
@@ -170,7 +170,7 @@ async def youtube_dl_call_back(bot, update):
     t_response = stdout.decode().strip()
     # LOGGER.info(e_response)
     # LOGGER.info(t_response)
-    ad_string_to_replace = "please report this issue on https://yt-dl.org/bug . Make sure you are using the latest version; see  https://yt-dl.org/update  on how to update. Be sure to call youtube-dl with the --verbose flag and include its complete output."
+    ad_string_to_replace = "Please report this issue on https://yt-dl.org/bug . Make sure you are using the latest version; see  https://yt-dl.org/update  on how to update. Be sure to call youtube-dl with the --verbose flag and include its complete output."
     if e_response and ad_string_to_replace in e_response:
         error_message = e_response.replace(ad_string_to_replace, "")
         await bot.edit_message_text(
@@ -229,7 +229,7 @@ async def youtube_dl_call_back(bot, update):
             message_to_send = mention_req_user + message_to_send
             message_to_send = message_to_send + "\n\n" + "#uploads"
         else:
-            message_to_send = "<i>FAILED</i> to upload files. 😞😞"
+            message_to_send = "<i>FAILED</i> to upload files. 😞"
         await update.message.reply_to_message.reply_text(
             text=message_to_send,
             quote=True,
