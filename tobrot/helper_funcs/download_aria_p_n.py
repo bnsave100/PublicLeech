@@ -30,7 +30,7 @@ async def aria_start():
     aria2_daemon_start_cmd = []
     # start the daemon, aria2c command
     aria2_daemon_start_cmd.append("aria2c")
-    aria2_daemon_start_cmd.append("--allow-overwrite=true")
+    # aria2_daemon_start_cmd.append("--allow-overwrite=true")
     aria2_daemon_start_cmd.append("--daemon=true")
     # aria2_daemon_start_cmd.append(f"--dir={DOWNLOAD_LOCATION}")
     # TODO: this does not work, need to investigate this.
@@ -46,8 +46,6 @@ async def aria_start():
     aria2_daemon_start_cmd.append("--seed-time=1")
     aria2_daemon_start_cmd.append("--split=10")
     aria2_daemon_start_cmd.append(f"--bt-stop-timeout={MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START}")
-    aria2_daemon_start_cmd.append("--max-overall-upload-limit=0")
-    aria2_daemon_start_cmd.append("--max-upload-limit=0")
     #
     LOGGER.info(aria2_daemon_start_cmd)
     #
@@ -201,12 +199,14 @@ async def check_progress_for_dl(aria2, gid, event, previous_message):
                 # TODO: temporary workaround
                 downloading_dir_name = "N/A"
                 try:
-                    downloading_dir_name = str(download.name)
+                    # another derp -_-
+                    # https://t.me/c/1220993104/423318
+                    downloading_dir_name = str(file.name)
                 except:
                     pass
                 #
-                msg = f"\nDownloading File: `{file.name}`"
-                msg += f"\nSpeed: {file.download_speed_string()} ⬇️ / {file.upload_speed_string()} ⬆️"
+                msg = f"\nDownloading File: `{downloading_dir_name}`"
+                msg += f"\nSpeed: {file.download_speed_string()} 🔽 / {file.upload_speed_string()} 🔼"
                 msg += f"\nProgress: {file.progress_string()}"
                 msg += f"\nTotal Size: {file.total_length_string()}"
                 # msg += f"\nStatus: {file.status}"
