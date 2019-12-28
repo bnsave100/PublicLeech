@@ -11,49 +11,89 @@ logging.basicConfig(
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
-import pyrogram
 
+import os
 
 from tobrot import (
-    AUTH_CHANNEL
+    DOWNLOAD_LOCATION
 )
 
 
-async def new_join_f(client, message):
-    chat_type = message.chat.type
-    if chat_type != "private":
-        await message.reply_text(f"Current CHAT ID: <code>{message.chat.id}</code>")
-        # leave chat
-        await client.leave_chat(
-            chat_id=message.chat.id,
-            delete=True
+import time
+from tobrot.helper_funcs.extract_link_from_message import extract_link
+from tobrot.helper_funcs.download_aria_p_n import call_apropriate_function, aria_start
+from tobrot.helper_funcs.download_from_link import request_download
+from tobrot.helper_funcs.display_progress import progress_for_pyrogram
+from tobrot.helper_funcs.youtube_dl_extractor import extract_youtube_dl_formats
+
+
+async def incoming_message_f(client, message):
+    """/leech command"""
+    i_m_sefg = await message.reply_text("processing", quote=True)
+    is_zip = False
+    if len(message.command) > 1:
+        if message.command[1] == "archive":
+            is_zip = True
+    # get link from the incoming message
+    dl_url, cf_name = extract_link(message.reply_to_message)
+    LOGGER.info(dl_url)
+    LOGGER.info(cf_name)
+    if dl_url is not None:
+        await i_m_sefg.edit_text("extracting links")
+        # start the aria2c daemon
+        aria_i_p = await aria_start()
+        LOGGER.info(aria_i_p)
+        current_user_id = message.from_user.id
+        # create an unique directory
+        new_download_location = os.path.join(
+            DOWNLOAD_LOCATION,
+            str(current_user_id),
+            str(time.time())
         )
-    # delete all other messages, except for AUTH_CHANNEL
-    await message.delete(revoke=True)
-
-
-async def help_message_f(client, message):
-    # await message.reply_text("no one gonna help you 🤣🤣🤣🤣", quote=True)
-    channel_id = str(AUTH_CHANNEL)[4:]
-    message_id = 99
-    # display the /help message
-    await message.reply_text(
-        f"please read the <a href='https://t.me/c/{channel_id}/{message_id}'>Pinned Message</a>",
-        quote=True
-    )
-
-
-async def rename_message_f(client, message):
-    inline_keyboard = []
-    inline_keyboard.append([
-        pyrogram.InlineKeyboardButton(
-            text="read this?",
-            url="https://t.me/keralagram/698909"
+        # create download directory, if not exist
+        if not os.path.isdir(new_download_location):
+            os.makedirs(new_download_location)
+        await i_m_sefg.edit_text("trying to download")
+        # try to download the "link"
+        sagtus, err_message = await call_apropriate_function(
+            aria_i_p,
+            dl_url,
+            new_download_location,
+            i_m_sefg,
+            is_zip
         )
-    ])
-    reply_markup = pyrogram.InlineKeyboardMarkup(inline_keyboard)
-    await message.reply_text(
-        "please use @renamebot",
-        quote=True,
-        reply_markup=reply_markup
-    )
+        if not sagtus:
+            # if FAILED, display the error message
+            await i_m_sefg.edit_text(err_message)
+    else:
+        await i_m_sefg.edit_text("**FCUK**! wat have you entered. Please read /help")
+
+
+async def incoming_youtube_dl_f(client, message):
+    """ /ytdl command """
+    i_m_sefg = await message.reply_text("processing", quote=True)
+    # LOGGER.info(message)
+    # extract link from message
+    dl_url, cf_name = extract_link(message.reply_to_message)
+    LOGGER.info(dl_url)
+    LOGGER.info(cf_name)
+    if dl_url is not None:
+        await i_m_sefg.edit_text("extracting links")
+        current_user_id = message.from_user.id
+        # create an unique directory
+        user_working_dir = os.path.join(DOWNLOAD_LOCATION, str(current_user_id))
+        # create download directory, if not exist
+        if not os.path.isdir(user_working_dir):
+            os.makedirs(user_working_dir)
+        # list the formats, and display in button markup formats
+        text_message, reply_markup = await extract_youtube_dl_formats(
+            dl_url,
+            user_working_dir
+        )
+        await i_m_sefg.edit_text(
+            text=text_message,
+            reply_markup=reply_markup
+        )
+    else:
+        # if no links found, delete the "processing" message
+        await i_m_sefg.delete()
